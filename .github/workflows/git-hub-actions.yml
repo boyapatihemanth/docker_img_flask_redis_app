@@ -25,13 +25,15 @@ jobs:
         shell: bash
         env:
             DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+            DOCKER_USERNAME: ${{ env.DOCKER_USERNAME }}
         run: |
            docker --version
            echo $RELEASE_VERSION
            cd ${{ github.workspace }}
            docker build . -t boyapatihemanth/redisapp:${RELEASE_VERSION}
+           echo $DOCKER_USERNAME
            docker tag boyapatihemanth/redisapp:${RELEASE_VERSION} boyapatihemanth/redisapp:latest
-           docker login -u "boyapatihemanth" -p $DOCKER_PASSWORD docker.io
+           docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
            docker push boyapatihemanth/redisapp:${RELEASE_VERSION}
            echo "PUSH COMPLETE boyapatihemanth/redisapp:${RELEASE_VERSION}"
            docker push boyapatihemanth/redisapp:latest
