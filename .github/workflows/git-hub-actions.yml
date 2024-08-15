@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
            docker --version
-           echo "tag: $RELEASE_VERSION"
+           echo "[INFO]tag: $RELEASE_VERSION"
            cd ${{ github.workspace }}
            docker build . -t boyapatihemanth/redisapp:${RELEASE_VERSION}
            docker tag boyapatihemanth/redisapp:${RELEASE_VERSION} boyapatihemanth/redisapp:latest
@@ -30,8 +30,8 @@ jobs:
       - name: test_image
         shell: bash
         run: |
-           echo "[INFO]starting network"
-           docker network create
+           echo "[INFO]create docker network"
+           docker network create mynet
            echo "[INFO]starting redis container"
            docker run --net mynet -d -p 6379:6379 --name redis redis
            echo "[INFO]starting local web container"
@@ -53,8 +53,8 @@ jobs:
         run: |
            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
            docker push boyapatihemanth/redisapp:${RELEASE_VERSION}
-           echo "PUSH COMPLETE boyapatihemanth/redisapp:${RELEASE_VERSION}"
+           echo "[INFO]PUSH COMPLETE boyapatihemanth/redisapp:${RELEASE_VERSION}"
            docker push boyapatihemanth/redisapp:latest
-           echo "PUSH COMPLETE boyapatihemanth/redisapp:latest"
+           echo "[INFO]PUSH COMPLETE boyapatihemanth/redisapp:latest"
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
