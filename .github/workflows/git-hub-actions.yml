@@ -30,15 +30,20 @@ jobs:
       - name: test_image
         shell: bash
         run: |
+           echo "[INFO]starting network"
+           docker network create
+           echo "[INFO]starting redis container"
            docker run -d -p 6379:6379 --name redis redis
+           echo "[INFO]starting local web container"
            docker run -d -p 80:80 -e redis_host=redis boyapatihemanth/redisapp:latest
+           curl http://localhost
+           curl -I http://localhost
            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost)
            if [ $status_code -ne 200 ]; then
-             echo "WEB APP NOT RESPONDING"
+             echo "[ERROR]WEB APP NOT RESPONDING - STATUS CODE: $status_code"
              exit 1
            else
-             echo "WEB APP WORKING"
-             curl http://localhost
+             echo "[INFO]WEB APP WORKING"
            fi
       - name: push_image
         shell: bash
