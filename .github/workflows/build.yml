@@ -1,0 +1,35 @@
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing image 🚀
+on:
+    pull_request:
+      types: [opened, reopened]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: build_image
+        shell: bash
+        run: |
+           cd ${{ github.workspace }}
+           docker build . -t myimg           
+      - name: test_image
+        shell: bash
+        run: |
+           echo "[INFO]create docker network"
+           docker network create mynet
+           echo "[INFO]starting redis container"
+           docker run --net mynet -d -p 6379:6379 --name redis redis
+           echo "[INFO]starting local web container"
+           docker run --net mynet -d -p 8030:80 -e redis_host=redis myimg
+           echo "[INFO]wait for few sec to enable container to respond"
+           sleep 3
+           status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8030)
+           if [ $status_code -ne 200 ]; then
+             echo "[ERROR]WEB APP NOT RESPONDING - STATUS CODE: $status_code"
+             exit 1
+           else
+             echo "[INFO]WEB APP WORKING"
+           fi
+      - run: echo "🍏 This job's status is ${{ job.status }}."
