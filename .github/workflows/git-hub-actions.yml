@@ -36,6 +36,7 @@ jobs:
            docker run --net mynet -d -p 6379:6379 --name redis redis
            echo "[INFO]starting local web container"
            docker run --net mynet -d -p 8030:80 -e redis_host=redis boyapatihemanth/redisapp:latest
+           sleep 5
            curl http://127.0.0.1:8030
            curl -I http://127.0.0.1:8030
            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8030)
