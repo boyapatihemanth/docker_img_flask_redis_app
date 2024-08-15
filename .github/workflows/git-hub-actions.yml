@@ -16,26 +16,40 @@ jobs:
         uses: actions/checkout@v4
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
-        run: |
-          ls ${{ github.workspace }}
       - name: Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: build_image
+        shell: bash
+        run: |
+           docker --version
+           echo "tag: $RELEASE_VERSION"
+           cd ${{ github.workspace }}
+           docker build . -t boyapatihemanth/redisapp:${RELEASE_VERSION}
+           docker tag boyapatihemanth/redisapp:${RELEASE_VERSION} boyapatihemanth/redisapp:latest
+           
+      - name: test_image
+        shell: bash
+        run: |
+           docker run -d --net mynet -p 6379:6379 --name redis redis
+           docker run -d --net mynet -p 80:80 -e redis_host=redis boyapatihemanth/redisapp:latest
+           status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost)
+           if [ $status_code -ne 200 ]; then
+             echo "WEB APP NOT RESPONDING"
+             exit 1
+           else
+             echo "WEB APP WORKING"
+             curl http://localhost
+           fi
+      - name: push_image
         shell: bash
         env:
             DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
             DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
         run: |
-           docker --version
-           echo "tag: $RELEASE_VERSION"
-           echo "docker username: $DOCKER_USERNAME"
-           cd ${{ github.workspace }}
-           docker build . -t boyapatihemanth/redisapp:${RELEASE_VERSION}
-           docker tag boyapatihemanth/redisapp:${RELEASE_VERSION} boyapatihemanth/redisapp:latest
            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
            docker push boyapatihemanth/redisapp:${RELEASE_VERSION}
            echo "PUSH COMPLETE boyapatihemanth/redisapp:${RELEASE_VERSION}"
            docker push boyapatihemanth/redisapp:latest
            echo "PUSH COMPLETE boyapatihemanth/redisapp:latest"
+
       - run: echo "🍏 This job's status is ${{ job.status }}."
