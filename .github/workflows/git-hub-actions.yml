@@ -35,10 +35,10 @@ jobs:
            echo "[INFO]starting redis container"
            docker run --net mynet -d -p 6379:6379 --name redis redis
            echo "[INFO]starting local web container"
-           docker run --net mynet -d -p 80:80 -e redis_host=redis boyapatihemanth/redisapp:latest
-           curl http://localhost
-           curl -I http://localhost
-           status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost)
+           docker run --net mynet -d -p 8030:80 -e redis_host=redis boyapatihemanth/redisapp:latest
+           curl http://127.0.0.1:8030
+           curl -I http://127.0.0.1:8030
+           status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8030)
            if [ $status_code -ne 200 ]; then
              echo "[ERROR]WEB APP NOT RESPONDING - STATUS CODE: $status_code"
              exit 1
